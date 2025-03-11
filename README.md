@@ -1,10 +1,10 @@
 # Cushion ISA Investment Platform
 
-A lightweight, event-driven investment system with a modern web interface inspired by Cushon's design aesthetics.
+A lightweight, event-driven investment system with a basic web interface.
 
 ## Features
 
-- Clean, modern UI with responsive design
+- Basic UI with responsive design
 - Real-time investment submission
 - Asynchronous transaction processing
 - Input validation and error handling
