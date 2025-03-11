@@ -1,0 +1,22 @@
+server:
+  port: 8081
+  host: "localhost"
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "postgres"
+  dbname: "cushion_isa"
+  sslmode: "disable"
+
+queue:
+  type: "memory"
+  buffer_size: 100
+  num_workers: 2
+  brokers: ["localhost:9092"]
+  topic: "investments"
+  consumer_group: "investment-processor"
+
+logger:
+  level: "info" 

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-8">Investment System</h1>
+
+        <!-- Create Investment Form -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Create Investment</h2>
+            <form id="investmentForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Amount</label>
+                    <input type="number" name="amount" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Type</label>
+                    <select name="type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                        <option value="stocks">Stocks</option>
+                        <option value="bonds">Bonds</option>
+                        <option value="cushon_equities">Cushon Equities Fund</option>
+                        <option value="crypto">Cryptocurrency</option>
+                    </select>
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Create Investment</button>
+            </form>
+        </div>
+
+        <!-- Investment List -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Investments</h2>
+            <div id="investmentList" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        // Create Investment
+        document.getElementById('investmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = {
+                amount: parseFloat(formData.get('amount')),
+                type: formData.get('type')
+            };
+
+            try {
+                const response = await fetch('/api/invest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create investment');
+                }
+
+                e.target.reset();
+                loadInvestments();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to create investment');
+            }
+        });
+
+        // Load Investments
+        async function loadInvestments() {
+            try {
+                const response = await fetch('/api/investments');
+                const investments = await response.json();
+                
+                // Sort investments by creation date (most recent first)
+                investments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+                
+                const investmentList = document.getElementById('investmentList');
+                investmentList.innerHTML = investments.map(inv => `
+                    <div class="border rounded-lg p-4 flex justify-between items-center">
+                        <div>
+                            <div class="font-semibold">ID: ${inv.id}</div>
+                            <div>Type: ${getFundName(inv.type)}</div>
+                            <div>Amount: $${inv.amount}</div>
+                            <div>Status: <span class="px-2 py-1 rounded-full text-sm ${getStatusColor(inv.status)}">${inv.status}</span></div>
+                            <div class="text-sm text-gray-500">Created: ${new Date(inv.created_at).toLocaleString()}</div>
+                        </div>
+                        <button onclick="getInvestmentDetails(${inv.id})" class="bg-gray-100 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-200">
+                            Details
+                        </button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Get Investment Details
+        async function getInvestmentDetails(id) {
+            try {
+                const response = await fetch(`/api/investments/${id}`);
+                const investment = await response.json();
+                alert(JSON.stringify(investment, null, 2));
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to get investment details');
+            }
+        }
+
+        // Helper function for status colors
+        function getStatusColor(status) {
+            switch (status) {
+                case 'pending':
+                    return 'bg-yellow-100 text-yellow-800';
+                case 'processing':
+                    return 'bg-blue-100 text-blue-800';
+                case 'completed':
+                    return 'bg-green-100 text-green-800';
+                default:
+                    return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        // Helper function for fund names
+        function getFundName(type) {
+            switch (type) {
+                case 'stocks':
+                    return 'Stocks';
+                case 'bonds':
+                    return 'Bonds';
+                case 'cushon_equities':
+                    return 'Cushon Equities Fund';
+                case 'crypto':
+                    return 'Cryptocurrency';
+                default:
+                    return type;
+            }
+        }
+
+        // Load investments on page load
+        loadInvestments();
+        // Refresh investments every 5 seconds
+        setInterval(loadInvestments, 5000);
+    </script>
+</body>
+</html> 
